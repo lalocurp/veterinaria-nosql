@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Módulo de Pacientes - NoSQL</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f0f2f5; padding-bottom: 100px; }
+        header { background-color: #003366; color: white; padding: 18px 20px; border-bottom: 4px solid #FFD700; display: flex; align-items: center; justify-content: center; gap: 16px; }
+        header img { height: 55px; }
+        header h1 { margin: 0; font-size: 1.6em; letter-spacing: 2px; color: white; text-transform: uppercase; }
+        nav { background-color: #002244; padding: 12px 0; text-align: center; }
+        nav a { color: #FFD700; text-decoration: none; margin: 0 15px; font-weight: bold; text-transform: uppercase; }
+        nav a:hover { color: white; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        h2 { color: #003366; border-bottom: 2px solid #FFD700; padding-bottom: 10px; margin-top: 0; }
+        .split-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+        .form-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid #FFD700; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: bold; color: #003366; margin-bottom: 5px; font-size: 0.9em; }
+        .form-group input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+        .btn-submit { background-color: #003366; color: #FFD700; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 15px; align-self: flex-start; }
+        .btn-submit:hover { background-color: #002244; color: white; }
+        .nosql-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 20px; }
+        .document-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 6px solid #003366; }
+        .doc-title { font-weight: bold; color: #003366; font-size: 1.1em; margin-bottom: 10px; border-bottom: 1px dashed #FFD700; padding-bottom: 5px; }
+        .field { margin: 6px 0; font-size: 0.95em; }
+        .label { font-weight: bold; color: #555; }
+        .card-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-edit { background: #FFD700; color: #003366; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85em; }
+        .btn-delete { background: #cc0000; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85em; }
+        .btn-edit:hover { background: #e6c200; }
+        .btn-delete:hover { background: #990000; }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-bar input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+        footer { background-color: #003366; color: white; text-align: center; padding: 15px 0; position: fixed; bottom: 0; width: 100%; border-top: 4px solid #FFD700; font-size: 0.9em; }
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center; }
+        .modal-overlay.active { display:flex; }
+        .modal { background:white; padding:30px; border-radius:8px; width:400px; border-top:5px solid #FFD700; }
+        .modal h3 { color:#003366; margin-top:0; }
+        .modal .form-group { margin-bottom:12px; }
+        .modal-actions { display:flex; gap:10px; margin-top:15px; }
+        .btn-cancel { background:#ccc; color:#333; border:none; padding:10px 15px; border-radius:4px; font-weight:bold; cursor:pointer; }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.png" alt="Logo Veterinaria Alvarito">
+        <h1>Veterinaria Alvarito</h1>
+    </header>
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="clientes.html">Clientes</a>
+        <a href="pacientes.html">Pacientes</a>
+        <a href="historial.html">Historial</a>
+        <a href="vacunacion.html">Vacunación</a>
+    </nav>
+    <div class="container">
+        <div class="split-container">
+            <div class="form-container">
+                <h3>📥 Insertar Nuevo Paciente</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Nombre de Mascota:</label><input type="text" id="nombreMascota" placeholder="Ej. Max"></div>
+                    <div class="form-group"><label>Especie:</label><input type="text" id="especie" placeholder="Ej. Perro, Gato"></div>
+                    <div class="form-group"><label>Raza:</label><input type="text" id="raza" placeholder="Ej. Chihuahua"></div>
+                    <div class="form-group"><label>Dueño Asociado:</label><input type="text" id="dueno" placeholder="Ej. Juan Pérez"></div>
+                </div>
+                <button class="btn-submit" onclick="guardarPaciente()">Registrar Paciente</button>
+            </div>
+            <div>
+                <h2>📂 Colección: `pacientes`</h2>
+                <div class="search-bar">
+                    <input type="text" id="buscar" placeholder="🔍 Buscar por nombre o dueño..." oninput="filtrarPacientes()">
+                </div>
+                <div class="nosql-grid" id="grid-pacientes"></div>
+            </div>
+        </div>
+    </div>
+    <footer>Alumno: Candia Arenivas Jesus Eduardo | No. Control: 0814</footer>
+
+    <div class="modal-overlay" id="modalEditar">
+        <div class="modal">
+            <h3>✏️ Editar Paciente</h3>
+            <input type="hidden" id="editId">
+            <div class="form-group"><label>Nombre:</label><input type="text" id="editNombre"></div>
+            <div class="form-group"><label>Especie:</label><input type="text" id="editEspecie"></div>
+            <div class="form-group"><label>Raza:</label><input type="text" id="editRaza"></div>
+            <div class="form-group"><label>Dueño:</label><input type="text" id="editDueno"></div>
+            <div class="modal-actions">
+                <button class="btn-submit" onclick="actualizarPaciente()">Guardar Cambios</button>
+                <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlP = 'http://localhost:3000/api/pacientes';
+        let todosPacientes = [];
+
+        async function cargarPacientes() {
+            const res = await fetch(urlP);
+            todosPacientes = await res.json();
+            renderPacientes(todosPacientes);
+        }
+
+        function renderPacientes(datos) {
+            const grid = document.getElementById('grid-pacientes');
+            grid.innerHTML = '';
+            if(datos.length === 0) { grid.innerHTML = '<p style="color:#999;">No se encontraron resultados.</p>'; return; }
+            datos.forEach(p => {
+                grid.innerHTML += `<div class="document-card">
+                    <div class="doc-title">Mascota: ${p.nombre}</div>
+                    <div class="field"><span class="label">Especie:</span> ${p.especie}</div>
+                    <div class="field"><span class="label">Raza:</span> ${p.raza}</div>
+                    <div class="field"><span class="label">Dueño:</span> ${p.dueno}</div>
+                    <div class="card-actions">
+                        <button class="btn-edit" onclick="abrirEditar('${p._id}','${p.nombre}','${p.especie}','${p.raza}','${p.dueno}')">✏️ Editar</button>
+                        <button class="btn-delete" onclick="eliminarPaciente('${p._id}')">🗑️ Eliminar</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function filtrarPacientes() {
+            const q = document.getElementById('buscar').value.toLowerCase();
+            const filtrados = todosPacientes.filter(p =>
+                (p.nombre||'').toLowerCase().includes(q) || (p.dueno||'').toLowerCase().includes(q)
+            );
+            renderPacientes(filtrados);
+        }
+
+        async function guardarPaciente() {
+            const nombre = document.getElementById('nombreMascota').value;
+            const especie = document.getElementById('especie').value;
+            const raza = document.getElementById('raza').value;
+            const dueno = document.getElementById('dueno').value;
+            if(!nombre) return alert('Pon el nombre de la mascota.');
+            await fetch(urlP, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ nombre, especie, raza, dueno }) });
+            document.getElementById('nombreMascota').value = ''; document.getElementById('especie').value = '';
+            document.getElementById('raza').value = ''; document.getElementById('dueno').value = '';
+            cargarPacientes();
+        }
+
+        function abrirEditar(id, nombre, especie, raza, dueno) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editNombre').value = nombre;
+            document.getElementById('editEspecie').value = especie;
+            document.getElementById('editRaza').value = raza;
+            document.getElementById('editDueno').value = dueno;
+            document.getElementById('modalEditar').classList.add('active');
+        }
+
+        function cerrarModal() { document.getElementById('modalEditar').classList.remove('active'); }
+
+        async function actualizarPaciente() {
+            const id = document.getElementById('editId').value;
+            const nombre = document.getElementById('editNombre').value;
+            const especie = document.getElementById('editEspecie').value;
+            const raza = document.getElementById('editRaza').value;
+            const dueno = document.getElementById('editDueno').value;
+            await fetch(`${urlP}/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ nombre, especie, raza, dueno }) });
+            cerrarModal();
+            cargarPacientes();
+        }
+
+        async function eliminarPaciente(id) {
+            if(!confirm('¿Eliminar este paciente?')) return;
+            await fetch(`${urlP}/${id}`, { method: 'DELETE' });
+            cargarPacientes();
+        }
+
+        window.onload = cargarPacientes;
+    </script>
+</body>
+</html>

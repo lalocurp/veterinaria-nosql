@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Módulo de Clientes - NoSQL</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f0f2f5; padding-bottom: 100px; }
+        header { background-color: #003366; color: white; padding: 18px 20px; border-bottom: 4px solid #FFD700; display: flex; align-items: center; justify-content: center; gap: 16px; }
+        header img { height: 55px; }
+        header h1 { margin: 0; font-size: 1.6em; letter-spacing: 2px; color: white; text-transform: uppercase; }
+        nav { background-color: #002244; padding: 12px 0; text-align: center; }
+        nav a { color: #FFD700; text-decoration: none; margin: 0 15px; font-weight: bold; text-transform: uppercase; }
+        nav a:hover { color: white; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        h2 { color: #003366; border-bottom: 2px solid #FFD700; padding-bottom: 10px; margin-top: 0; }
+        .split-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+        .form-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid #FFD700; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: bold; color: #003366; margin-bottom: 5px; font-size: 0.9em; }
+        .form-group input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+        .btn-submit { background-color: #003366; color: #FFD700; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 15px; align-self: flex-start; }
+        .btn-submit:hover { background-color: #002244; color: white; }
+        .nosql-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 20px; }
+        .document-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 6px solid #003366; border-top: 1px solid #ddd; }
+        .doc-title { font-weight: bold; color: #003366; font-size: 1.1em; margin-bottom: 10px; border-bottom: 1px dashed #FFD700; padding-bottom: 5px; }
+        .field { margin: 6px 0; font-size: 0.95em; }
+        .label { font-weight: bold; color: #555; }
+        .card-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-edit { background: #FFD700; color: #003366; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85em; }
+        .btn-delete { background: #cc0000; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85em; }
+        .btn-edit:hover { background: #e6c200; }
+        .btn-delete:hover { background: #990000; }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-bar input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+        footer { background-color: #003366; color: white; text-align: center; padding: 15px 0; position: fixed; bottom: 0; width: 100%; border-top: 4px solid #FFD700; font-size: 0.9em; }
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center; }
+        .modal-overlay.active { display:flex; }
+        .modal { background:white; padding:30px; border-radius:8px; width:400px; border-top:5px solid #FFD700; }
+        .modal h3 { color:#003366; margin-top:0; }
+        .modal .form-group { margin-bottom:12px; }
+        .modal-actions { display:flex; gap:10px; margin-top:15px; }
+        .btn-cancel { background:#ccc; color:#333; border:none; padding:10px 15px; border-radius:4px; font-weight:bold; cursor:pointer; }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.png" alt="Logo Veterinaria Alvarito">
+        <h1>Veterinaria Alvarito</h1>
+    </header>
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="clientes.html">Clientes</a>
+        <a href="pacientes.html">Pacientes</a>
+        <a href="historial.html">Historial</a>
+        <a href="vacunacion.html">Vacunación</a>
+    </nav>
+    <div class="container">
+        <div class="split-container">
+            <div class="form-container">
+                <h3>📥 Insertar Nuevo Documento (Cliente)</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Nombre Completo:</label><input type="text" id="nombre" placeholder="Ej. Juan Pérez"></div>
+                    <div class="form-group"><label>DNI / RUC:</label><input type="text" id="dni" placeholder="Ej. 55443322K"></div>
+                    <div class="form-group"><label>Teléfono:</label><input type="text" id="telefono" placeholder="Ej. 655111222"></div>
+                    <div class="form-group"><label>Correo Electrónico:</label><input type="email" id="email" placeholder="Ej. juan@email.com"></div>
+                </div>
+                <button class="btn-submit" onclick="guardarCliente()">Ejecutar InsertOne()</button>
+            </div>
+            <div>
+                <h2>📂 Colección: `clientes`</h2>
+                <div class="search-bar">
+                    <input type="text" id="buscar" placeholder="🔍 Buscar por nombre o DNI..." oninput="filtrarClientes()">
+                </div>
+                <div class="nosql-grid" id="grid-clientes"></div>
+            </div>
+        </div>
+    </div>
+    <footer>Alumno: Candia Arenivas Jesus Eduardo | No. Control: 0814</footer>
+
+    <div class="modal-overlay" id="modalEditar">
+        <div class="modal">
+            <h3>✏️ Editar Cliente</h3>
+            <input type="hidden" id="editId">
+            <div class="form-group"><label>Nombre:</label><input type="text" id="editNombre"></div>
+            <div class="form-group"><label>DNI:</label><input type="text" id="editDni"></div>
+            <div class="form-group"><label>Teléfono:</label><input type="text" id="editTelefono"></div>
+            <div class="form-group"><label>Email:</label><input type="email" id="editEmail"></div>
+            <div class="modal-actions">
+                <button class="btn-submit" onclick="actualizarCliente()">Guardar Cambios</button>
+                <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const url = 'http://localhost:3000/api/clientes';
+        let todosClientes = [];
+
+        async function cargarClientes() {
+            const res = await fetch(url);
+            todosClientes = await res.json();
+            renderClientes(todosClientes);
+        }
+
+        function renderClientes(datos) {
+            const grid = document.getElementById('grid-clientes');
+            grid.innerHTML = '';
+            if(datos.length === 0) { grid.innerHTML = '<p style="color:#999;">No se encontraron resultados.</p>'; return; }
+            datos.forEach(c => {
+                grid.innerHTML += `<div class="document-card">
+                    <div class="doc-title">_id: ${c._id.substring(18)}...</div>
+                    <div class="field"><span class="label">Nombre:</span> ${c.nombre}</div>
+                    <div class="field"><span class="label">DNI:</span> ${c.dni}</div>
+                    <div class="field"><span class="label">Teléfono:</span> ${c.telefono}</div>
+                    <div class="field"><span class="label">Email:</span> ${c.email}</div>
+                    <div class="card-actions">
+                        <button class="btn-edit" onclick="abrirEditar('${c._id}','${c.nombre}','${c.dni}','${c.telefono}','${c.email}')">✏️ Editar</button>
+                        <button class="btn-delete" onclick="eliminarCliente('${c._id}')">🗑️ Eliminar</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function filtrarClientes() {
+            const q = document.getElementById('buscar').value.toLowerCase();
+            const filtrados = todosClientes.filter(c =>
+                (c.nombre||'').toLowerCase().includes(q) || (c.dni||'').toLowerCase().includes(q)
+            );
+            renderClientes(filtrados);
+        }
+
+        async function guardarCliente() {
+            const nombre = document.getElementById('nombre').value;
+            const dni = document.getElementById('dni').value;
+            const telefono = document.getElementById('telefono').value;
+            const email = document.getElementById('email').value;
+            if(!nombre || !dni) return alert('Por favor llena los campos principales.');
+            await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ nombre, dni, telefono, email }) });
+            document.getElementById('nombre').value = ''; document.getElementById('dni').value = '';
+            document.getElementById('telefono').value = ''; document.getElementById('email').value = '';
+            cargarClientes();
+        }
+
+        function abrirEditar(id, nombre, dni, telefono, email) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editNombre').value = nombre;
+            document.getElementById('editDni').value = dni;
+            document.getElementById('editTelefono').value = telefono;
+            document.getElementById('editEmail').value = email;
+            document.getElementById('modalEditar').classList.add('active');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalEditar').classList.remove('active');
+        }
+
+        async function actualizarCliente() {
+            const id = document.getElementById('editId').value;
+            const nombre = document.getElementById('editNombre').value;
+            const dni = document.getElementById('editDni').value;
+            const telefono = document.getElementById('editTelefono').value;
+            const email = document.getElementById('editEmail').value;
+            await fetch(`${url}/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ nombre, dni, telefono, email }) });
+            cerrarModal();
+            cargarClientes();
+        }
+
+        async function eliminarCliente(id) {
+            if(!confirm('¿Eliminar este cliente?')) return;
+            await fetch(`${url}/${id}`, { method: 'DELETE' });
+            cargarClientes();
+        }
+
+        window.onload = cargarClientes;
+    </script>
+</body>
+</html>

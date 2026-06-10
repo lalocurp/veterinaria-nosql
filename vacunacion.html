@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Módulo de Vacunación - NoSQL</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f0f2f5; padding-bottom: 100px; }
+        header { background-color: #003366; color: white; padding: 18px 20px; border-bottom: 4px solid #FFD700; display: flex; align-items: center; justify-content: center; gap: 16px; }
+        header img { height: 55px; }
+        header h1 { margin: 0; font-size: 1.6em; letter-spacing: 2px; color: white; text-transform: uppercase; }
+        nav { background-color: #002244; padding: 12px 0; text-align: center; }
+        nav a { color: #FFD700; text-decoration: none; margin: 0 15px; font-weight: bold; text-transform: uppercase; }
+        nav a:hover { color: white; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        h2 { color: #003366; border-bottom: 2px solid #FFD700; padding-bottom: 10px; margin-top: 0; }
+        .split-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+        .form-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid #FFD700; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: bold; color: #003366; margin-bottom: 5px; font-size: 0.9em; }
+        .form-group input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+        .btn-submit { background-color: #003366; color: #FFD700; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 15px; align-self: flex-start; }
+        .btn-submit:hover { background-color: #002244; color: white; }
+        .nosql-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 20px; }
+        .document-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 6px solid #FFD700; }
+        .doc-title { font-weight: bold; color: #003366; font-size: 1.1em; margin-bottom: 10px; border-bottom: 1px dashed #003366; padding-bottom: 5px; }
+        .field { margin: 6px 0; font-size: 0.95em; }
+        .label { font-weight: bold; color: #555; }
+        .card-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-edit { background: #FFD700; color: #003366; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85em; }
+        .btn-delete { background: #cc0000; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85em; }
+        .btn-edit:hover { background: #e6c200; }
+        .btn-delete:hover { background: #990000; }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-bar input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+        footer { background-color: #003366; color: white; text-align: center; padding: 15px 0; position: fixed; bottom: 0; width: 100%; border-top: 4px solid #FFD700; font-size: 0.9em; }
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center; }
+        .modal-overlay.active { display:flex; }
+        .modal { background:white; padding:30px; border-radius:8px; width:400px; border-top:5px solid #FFD700; }
+        .modal h3 { color:#003366; margin-top:0; }
+        .modal .form-group { margin-bottom:12px; }
+        .modal-actions { display:flex; gap:10px; margin-top:15px; }
+        .btn-cancel { background:#ccc; color:#333; border:none; padding:10px 15px; border-radius:4px; font-weight:bold; cursor:pointer; }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.png" alt="Logo Veterinaria Alvarito">
+        <h1>Veterinaria Alvarito</h1>
+    </header>
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="clientes.html">Clientes</a>
+        <a href="pacientes.html">Pacientes</a>
+        <a href="historial.html">Historial</a>
+        <a href="vacunacion.html">Vacunación</a>
+    </nav>
+    <div class="container">
+        <div class="split-container">
+            <div class="form-container">
+                <h3>📥 Inyectar / Registrar Nueva Vacuna</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Paciente:</label><input type="text" id="vPaciente" placeholder="Ej. Bruno"></div>
+                    <div class="form-group"><label>Producto / Dosis:</label><input type="text" id="vProducto" placeholder="Ej. Quíntuple Felina"></div>
+                    <div class="form-group"><label>Fecha de Aplicación:</label><input type="text" id="vFecha" placeholder="Ej. 20/05/2026"></div>
+                </div>
+                <button class="btn-submit" onclick="guardarVacuna()">Registrar Vacuna</button>
+            </div>
+            <div>
+                <h2>💉 Colección: `prevencion`</h2>
+                <div class="search-bar">
+                    <input type="text" id="buscar" placeholder="🔍 Buscar por paciente o producto..." oninput="filtrarVacunas()">
+                </div>
+                <div class="nosql-grid" id="grid-vacunacion"></div>
+            </div>
+        </div>
+    </div>
+    <footer>Alumno: Candia Arenivas Jesus Eduardo | No. Control: 0814</footer>
+
+    <div class="modal-overlay" id="modalEditar">
+        <div class="modal">
+            <h3>✏️ Editar Vacuna</h3>
+            <input type="hidden" id="editId">
+            <div class="form-group"><label>Paciente:</label><input type="text" id="editPaciente"></div>
+            <div class="form-group"><label>Producto:</label><input type="text" id="editProducto"></div>
+            <div class="form-group"><label>Fecha:</label><input type="text" id="editFecha"></div>
+            <div class="modal-actions">
+                <button class="btn-submit" onclick="actualizarVacuna()">Guardar Cambios</button>
+                <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlV = 'http://localhost:3000/api/vacunacion';
+        let todasVacunas = [];
+
+        async function cargarVacunas() {
+            const res = await fetch(urlV);
+            todasVacunas = await res.json();
+            renderVacunas(todasVacunas);
+        }
+
+        function renderVacunas(datos) {
+            const grid = document.getElementById('grid-vacunacion');
+            grid.innerHTML = '';
+            if(datos.length === 0) { grid.innerHTML = '<p style="color:#999;">No se encontraron resultados.</p>'; return; }
+            datos.forEach(v => {
+                grid.innerHTML += `<div class="document-card">
+                    <div class="doc-title">Vacuna: ${v.producto}</div>
+                    <div class="field"><span class="label">Paciente:</span> ${v.paciente}</div>
+                    <div class="field"><span class="label">Aplicada el:</span> ${v.fecha}</div>
+                    <div class="card-actions">
+                        <button class="btn-edit" onclick="abrirEditar('${v._id}','${v.paciente}','${v.producto}','${v.fecha}')">✏️ Editar</button>
+                        <button class="btn-delete" onclick="eliminarVacuna('${v._id}')">🗑️ Eliminar</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function filtrarVacunas() {
+            const q = document.getElementById('buscar').value.toLowerCase();
+            const filtrados = todasVacunas.filter(v =>
+                (v.paciente||'').toLowerCase().includes(q) || (v.producto||'').toLowerCase().includes(q)
+            );
+            renderVacunas(filtrados);
+        }
+
+        async function guardarVacuna() {
+            const paciente = document.getElementById('vPaciente').value;
+            const producto = document.getElementById('vProducto').value;
+            const fecha = document.getElementById('vFecha').value;
+            if(!paciente || !producto) return alert('Completa los campos de la vacuna.');
+            await fetch(urlV, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ paciente, producto, fecha }) });
+            document.getElementById('vPaciente').value = ''; document.getElementById('vProducto').value = '';
+            document.getElementById('vFecha').value = '';
+            cargarVacunas();
+        }
+
+        function abrirEditar(id, paciente, producto, fecha) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editPaciente').value = paciente;
+            document.getElementById('editProducto').value = producto;
+            document.getElementById('editFecha').value = fecha;
+            document.getElementById('modalEditar').classList.add('active');
+        }
+
+        function cerrarModal() { document.getElementById('modalEditar').classList.remove('active'); }
+
+        async function actualizarVacuna() {
+            const id = document.getElementById('editId').value;
+            const paciente = document.getElementById('editPaciente').value;
+            const producto = document.getElementById('editProducto').value;
+            const fecha = document.getElementById('editFecha').value;
+            await fetch(`${urlV}/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ paciente, producto, fecha }) });
+            cerrarModal();
+            cargarVacunas();
+        }
+
+        async function eliminarVacuna(id) {
+            if(!confirm('¿Eliminar esta vacuna?')) return;
+            await fetch(`${urlV}/${id}`, { method: 'DELETE' });
+            cargarVacunas();
+        }
+
+        window.onload = cargarVacunas;
+    </script>
+</body>
+</html>

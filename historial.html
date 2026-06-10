@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Módulo de Historial - NoSQL</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f0f2f5; padding-bottom: 100px; }
+        header { background-color: #003366; color: white; padding: 18px 20px; border-bottom: 4px solid #FFD700; display: flex; align-items: center; justify-content: center; gap: 16px; }
+        header img { height: 55px; }
+        header h1 { margin: 0; font-size: 1.6em; letter-spacing: 2px; color: white; text-transform: uppercase; }
+        nav { background-color: #002244; padding: 12px 0; text-align: center; }
+        nav a { color: #FFD700; text-decoration: none; margin: 0 15px; font-weight: bold; text-transform: uppercase; }
+        nav a:hover { color: white; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        h2 { color: #003366; border-bottom: 2px solid #FFD700; padding-bottom: 10px; margin-top: 0; }
+        .split-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+        .form-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid #FFD700; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: bold; color: #003366; margin-bottom: 5px; font-size: 0.9em; }
+        .form-group input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+        .btn-submit { background-color: #003366; color: #FFD700; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 15px; align-self: flex-start; }
+        .btn-submit:hover { background-color: #002244; color: white; }
+        .nosql-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 20px; }
+        .document-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 6px solid #003366; }
+        .doc-title { font-weight: bold; color: #003366; font-size: 1.1em; margin-bottom: 10px; border-bottom: 1px dashed #FFD700; padding-bottom: 5px; }
+        .field { margin: 6px 0; font-size: 0.95em; }
+        .label { font-weight: bold; color: #555; }
+        .card-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-edit { background: #FFD700; color: #003366; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85em; }
+        .btn-delete { background: #cc0000; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85em; }
+        .btn-edit:hover { background: #e6c200; }
+        .btn-delete:hover { background: #990000; }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-bar input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+        footer { background-color: #003366; color: white; text-align: center; padding: 15px 0; position: fixed; bottom: 0; width: 100%; border-top: 4px solid #FFD700; font-size: 0.9em; }
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center; }
+        .modal-overlay.active { display:flex; }
+        .modal { background:white; padding:30px; border-radius:8px; width:400px; border-top:5px solid #FFD700; }
+        .modal h3 { color:#003366; margin-top:0; }
+        .modal .form-group { margin-bottom:12px; }
+        .modal-actions { display:flex; gap:10px; margin-top:15px; }
+        .btn-cancel { background:#ccc; color:#333; border:none; padding:10px 15px; border-radius:4px; font-weight:bold; cursor:pointer; }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.png" alt="Logo Veterinaria Alvarito">
+        <h1>Veterinaria Alvarito</h1>
+    </header>
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="clientes.html">Clientes</a>
+        <a href="pacientes.html">Pacientes</a>
+        <a href="historial.html">Historial</a>
+        <a href="vacunacion.html">Vacunación</a>
+    </nav>
+    <div class="container">
+        <div class="split-container">
+            <div class="form-container">
+                <h3>📥 Registrar Evento Clínico</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Mascota Paciente:</label><input type="text" id="mascota" placeholder="Ej. Luna"></div>
+                    <div class="form-group"><label>Fecha Consulta:</label><input type="text" id="fecha" placeholder="Ej. 15/05/2026"></div>
+                    <div class="form-group"><label>Motivo:</label><input type="text" id="motivo" placeholder="Ej. Control de peso"></div>
+                    <div class="form-group"><label>Diagnóstico:</label><input type="text" id="diagnostico" placeholder="Ej. Sano"></div>
+                </div>
+                <button class="btn-submit" onclick="guardarHistorial()">Añadir Diagnóstico</button>
+            </div>
+            <div>
+                <h2>📋 Colección: `historial`</h2>
+                <div class="search-bar">
+                    <input type="text" id="buscar" placeholder="🔍 Buscar por mascota o motivo..." oninput="filtrarHistorial()">
+                </div>
+                <div class="nosql-grid" id="grid-historial"></div>
+            </div>
+        </div>
+    </div>
+    <footer>Alumno: Candia Arenivas Jesus Eduardo | No. Control: 0814</footer>
+
+    <div class="modal-overlay" id="modalEditar">
+        <div class="modal">
+            <h3>✏️ Editar Registro Clínico</h3>
+            <input type="hidden" id="editId">
+            <div class="form-group"><label>Mascota:</label><input type="text" id="editMascota"></div>
+            <div class="form-group"><label>Fecha:</label><input type="text" id="editFecha"></div>
+            <div class="form-group"><label>Motivo:</label><input type="text" id="editMotivo"></div>
+            <div class="form-group"><label>Diagnóstico:</label><input type="text" id="editDiagnostico"></div>
+            <div class="modal-actions">
+                <button class="btn-submit" onclick="actualizarHistorial()">Guardar Cambios</button>
+                <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlH = 'http://localhost:3000/api/historial';
+        let todosHistorial = [];
+
+        async function cargarHistorial() {
+            const res = await fetch(urlH);
+            todosHistorial = await res.json();
+            renderHistorial(todosHistorial);
+        }
+
+        function renderHistorial(datos) {
+            const grid = document.getElementById('grid-historial');
+            grid.innerHTML = '';
+            if(datos.length === 0) { grid.innerHTML = '<p style="color:#999;">No se encontraron resultados.</p>'; return; }
+            datos.forEach(h => {
+                grid.innerHTML += `<div class="document-card">
+                    <div class="doc-title">Consulta: ${h.mascota}</div>
+                    <div class="field"><span class="label">Fecha:</span> ${h.fecha}</div>
+                    <div class="field"><span class="label">Motivo:</span> ${h.motivo}</div>
+                    <div class="field"><span class="label">Diagnóstico:</span> ${h.diagnostico}</div>
+                    <div class="card-actions">
+                        <button class="btn-edit" onclick="abrirEditar('${h._id}','${h.mascota}','${h.fecha}','${h.motivo}','${h.diagnostico}')">✏️ Editar</button>
+                        <button class="btn-delete" onclick="eliminarHistorial('${h._id}')">🗑️ Eliminar</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function filtrarHistorial() {
+            const q = document.getElementById('buscar').value.toLowerCase();
+            const filtrados = todosHistorial.filter(h =>
+                (h.mascota||'').toLowerCase().includes(q) || (h.motivo||'').toLowerCase().includes(q)
+            );
+            renderHistorial(filtrados);
+        }
+
+        async function guardarHistorial() {
+            const mascota = document.getElementById('mascota').value;
+            const fecha = document.getElementById('fecha').value;
+            const motivo = document.getElementById('motivo').value;
+            const diagnostico = document.getElementById('diagnostico').value;
+            if(!mascota) return alert('Pon el nombre del paciente.');
+            await fetch(urlH, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ mascota, fecha, motivo, diagnostico }) });
+            document.getElementById('mascota').value = ''; document.getElementById('fecha').value = '';
+            document.getElementById('motivo').value = ''; document.getElementById('diagnostico').value = '';
+            cargarHistorial();
+        }
+
+        function abrirEditar(id, mascota, fecha, motivo, diagnostico) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editMascota').value = mascota;
+            document.getElementById('editFecha').value = fecha;
+            document.getElementById('editMotivo').value = motivo;
+            document.getElementById('editDiagnostico').value = diagnostico;
+            document.getElementById('modalEditar').classList.add('active');
+        }
+
+        function cerrarModal() { document.getElementById('modalEditar').classList.remove('active'); }
+
+        async function actualizarHistorial() {
+            const id = document.getElementById('editId').value;
+            const mascota = document.getElementById('editMascota').value;
+            const fecha = document.getElementById('editFecha').value;
+            const motivo = document.getElementById('editMotivo').value;
+            const diagnostico = document.getElementById('editDiagnostico').value;
+            await fetch(`${urlH}/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ mascota, fecha, motivo, diagnostico }) });
+            cerrarModal();
+            cargarHistorial();
+        }
+
+        async function eliminarHistorial(id) {
+            if(!confirm('¿Eliminar este registro?')) return;
+            await fetch(`${urlH}/${id}`, { method: 'DELETE' });
+            cargarHistorial();
+        }
+
+        window.onload = cargarHistorial;
+    </script>
+</body>
+</html>

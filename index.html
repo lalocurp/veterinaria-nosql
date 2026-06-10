@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Veterinaria Alvarito - Inicio</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f0f2f5; padding-bottom: 100px; }
+        header { background-color: #003366; color: white; padding: 18px 20px; border-bottom: 4px solid #FFD700; display: flex; align-items: center; justify-content: center; gap: 16px; }
+        header img { height: 55px; }
+        header h1 { margin: 0; font-size: 1.6em; letter-spacing: 2px; color: white; text-transform: uppercase; }
+        nav { background-color: #002244; padding: 12px 0; text-align: center; }
+        nav a { color: #FFD700; text-decoration: none; margin: 0 15px; font-weight: bold; text-transform: uppercase; }
+        nav a:hover { color: white; }
+        .container { max-width: 1000px; margin: 50px auto; padding: 0 20px; text-align: center; }
+        h2 { color: #003366; font-size: 2em; margin-bottom: 15px; }
+        p { color: #555; font-size: 1.15em; line-height: 1.6; max-width: 700px; margin: 0 auto 40px auto; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
+        .menu-card { background: white; padding: 30px 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid #003366; text-decoration: none; color: inherit; transition: transform 0.2s, border-top-color 0.2s; }
+        .menu-card:hover { transform: translateY(-5px); border-top-color: #FFD700; }
+        .card-icon { font-size: 2.5em; margin-bottom: 15px; }
+        .card-title { font-weight: bold; color: #003366; font-size: 1.25em; margin-bottom: 10px; }
+        .card-desc { color: #666; font-size: 0.95em; line-height: 1.4; }
+        footer { background-color: #003366; color: white; text-align: center; padding: 15px 0; position: fixed; bottom: 0; width: 100%; border-top: 4px solid #FFD700; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.png" alt="Logo Veterinaria Alvarito">
+        <h1>Veterinaria Alvarito</h1>
+    </header>
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="clientes.html">Clientes</a>
+        <a href="pacientes.html">Pacientes</a>
+        <a href="historial.html">Historial</a>
+        <a href="vacunacion.html">Vacunación</a>
+    </nav>
+    <div class="container">
+        <h2>¡Bienvenido al Sistema de Gestión en la Nube!</h2>
+        <p>Este portal está conectado de forma activa con MongoDB Atlas. Utiliza los módulos de navegación para insertar, editar y eliminar documentos en tiempo real.</p>
+        <div class="menu-grid">
+            <a href="clientes.html" class="menu-card"><div class="card-icon">👥</div><div class="card-title">Clientes</div><div class="card-desc">Colección de dueños de mascotas guardados directamente en Atlas.</div></a>
+            <a href="pacientes.html" class="menu-card"><div class="card-icon">🐾</div><div class="card-title">Pacientes</div><div class="card-desc">Estructura para el registro y almacenamiento de animales.</div></a>
+            <a href="historial.html" class="menu-card"><div class="card-icon">📋</div><div class="card-title">Historial Clínico</div><div class="card-desc">Área para consultas de eventos médicos veterinarios.</div></a>
+            <a href="vacunacion.html" class="menu-card"><div class="card-icon">💉</div><div class="card-title">Vacunación</div><div class="card-desc">Módulo preventivo para la administración y control de dosis.</div></a>
+        </div>
+    </div>
+    <footer>Alumno: Candia Arenivas Jesus Eduardo | No. Control: 0814</footer>
+</body>
+</html>
